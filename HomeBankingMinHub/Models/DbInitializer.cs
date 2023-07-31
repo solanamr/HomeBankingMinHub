@@ -45,6 +45,44 @@ namespace HomeBankingMinHub.Models
                 }
             }
 
+            if (!context.Transactions.Any())
+
+            {
+
+                var account1 = context.Accounts.FirstOrDefault(c => c.Number == "S239");
+
+                if (account1 != null)
+
+                {
+
+                    var transactions = new Transaction[]
+
+                    {
+
+                        new Transaction { AccountId= account1.Id, Amount = 10000, Date= DateTime.Now.AddHours(-5), Description = "Transferencia de Susanita recibida", Type = TransactionType.CREDIT.ToString() },
+
+                        new Transaction { AccountId= account1.Id, Amount = -2000, Date= DateTime.Now.AddHours(-6), Description = "Compra en heladeria Cremolatti", Type = TransactionType.DEBIT.ToString() },
+
+                        new Transaction { AccountId= account1.Id, Amount = -3000, Date= DateTime.Now.AddHours(-7), Description = "Compra en Mcdonald's", Type = TransactionType.DEBIT.ToString() },
+
+                    };
+
+                    foreach (Transaction t in transactions)
+
+                    {
+
+                        context.Transactions.Add(t);
+
+                    }
+
+                    context.SaveChanges();
+
+
+
+                }
+
+            }
+
         }
     }
 }
