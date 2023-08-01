@@ -150,6 +150,46 @@ namespace HomeBankingMinHub.Models
 
             }
 
+
+            if (!context.Cards.Any())
+            {
+                //buscamos al unico cliente
+                var clientOne = context.Clients.FirstOrDefault(c => c.Email == "vcoronado@gmail.com");
+                if (clientOne != null)
+                {
+                    //le agregamos 2 tarjetas de crédito una GOLD y una TITANIUM, de tipo DEBITO Y CREDITO RESPECTIVAMENTE
+                    var cards = new Card[]
+                    {
+                        new Card {
+                            ClientId= clientOne.Id,
+                            CardHolder = clientOne.FirstName + " " + clientOne.LastName,
+                            Type = CardType.DEBIT.ToString(),
+                            Color = CardColor.GOLD.ToString(),
+                            Number = "3325-6745-7876-9995",
+                            Cvv = 990,
+                            FromDate= DateTime.Now,
+                            ThruDate= DateTime.Now.AddYears(4),
+                        },
+                        new Card {
+                            ClientId= clientOne.Id,
+                            CardHolder = clientOne.FirstName + " " + clientOne.LastName,
+                            Type = CardType.CREDIT.ToString(),
+                            Color = CardColor.TITANIUM.ToString(),
+                            Number = "2234-6745-552-5000",
+                            Cvv = 750,
+                            FromDate= DateTime.Now,
+                            ThruDate= DateTime.Now.AddYears(5),
+                        },
+                    };
+
+                    foreach (Card c in cards)
+                    {
+                        context.Cards.Add(c);
+                    }
+                    context.SaveChanges();
+                }
+            }
+
         }
     }
 }

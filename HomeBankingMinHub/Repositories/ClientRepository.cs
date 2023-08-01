@@ -17,8 +17,9 @@ namespace HomeBankingMinHub.Repositories
         {
             return FindByCondition(client => client.Id == id)
                 .Include(client => client.Accounts)
-                 .Include(client => client.ClientLoans)
+                .Include(client => client.ClientLoans)
                     .ThenInclude(cl => cl.Loan)
+                .Include(client => client.Cards)
                 .FirstOrDefault();
         }
 
@@ -28,6 +29,7 @@ namespace HomeBankingMinHub.Repositories
                 .Include(client => client.Accounts)
                 .Include(client => client.ClientLoans)
                     .ThenInclude(cl => cl.Loan)
+                .Include(client => client.Cards)
                 .ToList();
         }
 
