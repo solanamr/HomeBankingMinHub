@@ -13,6 +13,7 @@ var app = new Vue({
             .then(function (response) {
                 //get client ifo
                 app.clientInfo = response.data;
+                console.log('*data cliente*:', app.clientInfo)
             })
             .catch(function (error) {
                 // handle error
