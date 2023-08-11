@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System;
 using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HomeBankingMinHub.Controllers
 {
@@ -13,13 +14,14 @@ namespace HomeBankingMinHub.Controllers
     public class AccountsController : ControllerBase
     {
         private IAccountRepository _accountRepository;
+        
 
         public AccountsController(IAccountRepository accountRepository)
 
         {
 
             _accountRepository = accountRepository;
-
+            
         }
 
         [HttpGet]
@@ -152,6 +154,42 @@ namespace HomeBankingMinHub.Controllers
 
         }
 
+
+        [HttpPost]
+        [Authorize]
+
+        public IActionResult Post(long clientId)
+        {
+            try
+            {
+                Account newAccount = new Account
+                {
+                    ClientId = clientId,
+                    CreationDate = DateTime.Now,
+                    Balance = 0,
+                    Number = "S" + new Random().Next(100, 999).ToString()
+
+                };
+
+                _accountRepository.Save(newAccount);
+                AccountDTO newaccDTO = new AccountDTO
+                {
+                    Id = newAccount.Id,
+                    Balance = newAccount.Balance,
+                    CreationDate = newAccount.CreationDate,
+                    Number = newAccount.Number
+                };
+                return Created("", newaccDTO);
+
+
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
     }
 }
 
+//en el acc contr retornar un iactionresult con el created con el accDTO y cuando se pasa al cliencontroller retornar lo que se recibe que es la variable account con el accountcontroller

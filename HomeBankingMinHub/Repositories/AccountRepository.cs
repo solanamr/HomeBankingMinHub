@@ -25,10 +25,22 @@ namespace HomeBankingMinHub.Repositories
                .ToList();
         }
 
-        public void Save(Account accounts)
+        public void Save(Account account)
         {
-            Create(accounts);
+            Create(account);
             SaveChanges();
+        }
+
+        public IEnumerable<Account> GetAccountsByClient(long clientId)
+
+        {
+
+            return FindByCondition(account => account.ClientId == clientId)
+
+            .Include(account => account.Transactions)
+
+            .ToList();
+
         }
     }
 }

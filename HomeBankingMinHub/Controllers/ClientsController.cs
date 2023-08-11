@@ -16,13 +16,15 @@ namespace HomeBankingMinHub.Controllers
     {
 
         private IClientRepository _clientRepository;
+        private AccountsController _accountsController;
+        private CardsController _cardsController;
 
-        public ClientsController(IClientRepository clientRepository)
+        public ClientsController(IClientRepository clientRepository, AccountsController accountsController, CardsController cardsController)
 
         {
-
             _clientRepository = clientRepository;
-
+            _accountsController = accountsController;
+            _cardsController = cardsController;
         }
 
         [HttpGet]
@@ -257,6 +259,7 @@ namespace HomeBankingMinHub.Controllers
             }
         }
 
+
         [HttpPost]
         public IActionResult Post([FromBody] Client client)
         {
@@ -283,6 +286,8 @@ namespace HomeBankingMinHub.Controllers
                 };
 
                 _clientRepository.Save(newClient);
+                _accountsController.Post(newClient.Id);
+
                 return Created("", newClient);
 
             }
@@ -291,6 +296,104 @@ namespace HomeBankingMinHub.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
+
+        [HttpPost("current/accounts")] //crear hasta 3 cuentas 
+
+        public IActionResult PostAccounts()
+        {
+            try
+            {
+                string email = User.FindFirst("Client") != null ? User.FindFirst("Client").Value : string.Empty;
+                if (email == string.Empty)
+                {
+                    return Forbid();
+                }
+                Client client = _clientRepository.FindByEmail(email);
+                if (client == null)
+                {
+                    return Forbid();
+                }
+                if (client.Accounts.Count > 2)
+                {
+                    return StatusCode(403, "Usted ya tiene mas de 3 cuentas");
+                }
+
+                var account = _accountsController.Post(client.Id); //creamos lacuenta 
+                if (account == null)
+                {
+                    return StatusCode(500, "Error al crear la cuenta");
+                }
+                return Created("", account);
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+
+        [HttpPost("current/cards")]
+
+
+        public IActionResult PostCards([FromBody] Card card)
+        {
+            try
+            {
+                string email = User.FindFirst("Client") != null ? User.FindFirst("Client").Value : string.Empty;
+                if (email == string.Empty)
+                {
+                    return NotFound();
+                }
+
+                Client client = _clientRepository.FindByEmail(email);
+
+                if(card.Type != CardType.CREDIT.ToString() && card.Type != CardType.DEBIT.ToString())
+                {
+                    return BadRequest("El tipo de tarjeta no es valido");
+                }
+                if (card.Color != CardColor.GOLD.ToString() && card.Color != CardColor.SILVER.ToString() && card.Type != CardColor.SILVER.ToString())
+                {
+                    return BadRequest("El color de tarjeta no es valido");
+                }
+
+
+                int CardCount = client.Cards.Where(c => c.Type == card.Type).Count();
+                if (CardCount > 2)
+                {
+                    return StatusCode(403, "Ya tiene 3 tarjetas del mismo tipo");
+                }
+                int sameCard = client.Cards.Where(c => card.Color == card.Color && c.Type ==card.Type).Count();
+                if (sameCard == 1)
+                {
+                    return StatusCode(403, "Ya tiene una tarjeta del mismo tipo y color");
+                }
+
+                Card newCard = new Card
+                {
+                    CardHolder = client.FirstName + " " + client.LastName,
+                    Type = card.Type,
+                    Color = card.Color,
+                    Number = new Random().Next(1000, 9999).ToString() + "-" +
+                    new Random().Next(1000, 9999).ToString() + "-" +
+                    new Random().Next(1000, 9999).ToString() + "-" +
+                    new Random().Next(1000, 9999).ToString(),
+                    Cvv = new Random().Next(100, 999),
+                    FromDate = DateTime.Now,
+                    ThruDate = DateTime.Now.AddYears(4),
+                    ClientId = client.Id,
+                };
+                var newCardDTO = _cardsController.Post(newCard);
+                return Created("", newCardDTO);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+
 
     }
 
