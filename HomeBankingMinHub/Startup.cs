@@ -48,6 +48,7 @@ namespace HomeBankingMinHub
             services.AddScoped<IClientRepository, ClientRepository>();
             services.AddScoped<IAccountRepository, AccountRepository>();
             services.AddScoped<ICardRepository, CardRepository>();
+            services.AddScoped<ITransactionRepository, TransactionRepository>();
             services.AddScoped<AccountsController>();
             services.AddScoped<CardsController>();
 

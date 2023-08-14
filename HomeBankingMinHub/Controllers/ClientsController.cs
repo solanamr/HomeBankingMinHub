@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
+
 namespace HomeBankingMinHub.Controllers
 {
 
@@ -17,14 +19,16 @@ namespace HomeBankingMinHub.Controllers
 
         private IClientRepository _clientRepository;
         private AccountsController _accountsController;
+        private IAccountRepository _accountRepository;
         private CardsController _cardsController;
 
-        public ClientsController(IClientRepository clientRepository, AccountsController accountsController, CardsController cardsController)
+        public ClientsController(IClientRepository clientRepository, AccountsController accountsController, CardsController cardsController, IAccountRepository accountRepository)
 
         {
             _clientRepository = clientRepository;
             _accountsController = accountsController;
             _cardsController = cardsController;
+            _accountRepository = accountRepository;
         }
 
         [HttpGet]
@@ -181,8 +185,6 @@ namespace HomeBankingMinHub.Controllers
                         Type = cr.Type
                     }).ToList()
 
-
-
                 };
 
                 return Ok(clientDTO);
@@ -269,6 +271,35 @@ namespace HomeBankingMinHub.Controllers
                 if (String.IsNullOrEmpty(client.Email) || String.IsNullOrEmpty(client.Password) || String.IsNullOrEmpty(client.FirstName) || String.IsNullOrEmpty(client.LastName))
                     return StatusCode(403, "datos inválidos");
 
+                if(client.FirstName.Length < 3 || client.LastName.Length < 3)
+                {
+                    return StatusCode(400, "name and last name should have more than 3 letters");
+                }
+                if (!Regex.IsMatch(client.FirstName, @"^[a-zA-Z\s]+$"))
+                    {
+                    return StatusCode(400, "name can't have special characters");
+                }
+                if (!Regex.IsMatch(client.LastName, @"^[a-zA-Z\s]+$"))
+                {
+                    return StatusCode(400, "name can't have special characters or numbers");
+                }
+                //mail no valido
+                if (!(Regex.IsMatch(client.Email, @"^([a-zA-Z0-9_.+-])+@(([a-zA-Z0-9-])+.)+([a-zA-Z0-9]{2,4})+$")))
+                {
+
+                    return StatusCode(400, "invalid email");
+                }
+
+                if (client.Password.Length < 8)
+                {
+                    return StatusCode(400, "password should be longer than 8");
+                }
+
+                if (!Regex.IsMatch(client.Password, @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$"))
+                {
+                    return StatusCode(400, "password should have one upper case, one lower case and a number");
+                }
+
                 //buscamos si ya existe el usuario
                 Client user = _clientRepository.FindByEmail(client.Email);
 
@@ -297,6 +328,32 @@ namespace HomeBankingMinHub.Controllers
             }
         }
 
+        [HttpGet("current/accounts")]
+
+        public IActionResult GetAccounts()
+        {
+           try
+
+            {
+                string email = User.FindFirst("Client") != null ? User.FindFirst("Client").Value : string.Empty;
+                if (email == string.Empty)
+                {
+                    return NotFound();
+                }
+                Client client = _clientRepository.FindByEmail(email);
+                if(client == null) 
+                {
+                    return NotFound();
+                }
+
+                var accounts = client.Accounts;
+                return Ok(accounts);
+            }
+            catch(Exception ex) 
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
 
         [HttpPost("current/accounts")] //crear hasta 3 cuentas 
 
@@ -333,6 +390,33 @@ namespace HomeBankingMinHub.Controllers
             }
         }
 
+
+        [HttpGet("current/cards")]
+
+        public IActionResult GetCards()
+        {
+            try
+
+            {
+                string email = User.FindFirst("Client") != null ? User.FindFirst("Client").Value : string.Empty;
+                if (email == string.Empty)
+                {
+                    return NotFound();
+                }
+                Client client = _clientRepository.FindByEmail(email);
+                if (client == null)
+                {
+                    return NotFound();
+                }
+
+                var cards = client.Cards;
+                return Ok(cards);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
 
         [HttpPost("current/cards")]
 
