@@ -277,19 +277,20 @@ namespace HomeBankingMinHub.Controllers
                 }
                 if (!Regex.IsMatch(client.FirstName, @"^[a-zA-Z\s]+$"))
                     {
-                    return StatusCode(400, "name can't have special characters");
+                    return StatusCode(400, "name can't have special characters or numbers");
                 }
                 if (!Regex.IsMatch(client.LastName, @"^[a-zA-Z\s]+$"))
                 {
-                    return StatusCode(400, "name can't have special characters or numbers");
+                    return StatusCode(400, "last name can't have special characters or numbers");
                 }
                 //mail no valido
-                if (!(Regex.IsMatch(client.Email, @"^([a-zA-Z0-9_.+-])+@(([a-zA-Z0-9-])+.)+([a-zA-Z0-9]{2,4})+$")))
+                if (!(Regex.IsMatch(client.Email, "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")))
                 {
 
                     return StatusCode(400, "invalid email");
                 }
 
+                //validaciones contraseña
                 if (client.Password.Length < 8)
                 {
                     return StatusCode(400, "password should be longer than 8");
